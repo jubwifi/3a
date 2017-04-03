@@ -9,6 +9,7 @@ use kartik\export\ExportMenu;
 use yii\bootstrap\Dropdown;
 
 $model = '';
+ $this->title = 'AAA | ';
 ?>
 <h2><i class="fa  fa-cloud-download"></i> นำเข้าข้อมูลจากระบบ HIS</h2>
 
@@ -145,7 +146,8 @@ $model = '';
                             if ($model['tck_pttype'] == 'N') {
                                 $vn=$model['vn'];
                                 $vstdate=$model['vstdate'];
-                                return Html::a("<span class='badge' style='background-color: #F44336' ><i class='fa fa-times-circle'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate], [
+                                $cid= md5($model['cid']);
+                                return Html::a("<span class='badge' style='background-color: #F44336' ><i class='fa fa-times-circle'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate,'id'=>$cid], [
                                             'class' => 'activity-add-link',
                                             'title' => 'ตรวจสอบสิทธิ์การรักษา',
                                             'data-toggle' => 'modal',
@@ -156,7 +158,8 @@ $model = '';
                             } else {
                                 $vn=$model['vn'];
                                 $vstdate=$model['vstdate'];
-                                return Html::a("<span class='badge' style='background-color: #4CAF50' ><i class='fa fa-check-square-o'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate], [
+                                $cid= md5($model['cid']);
+                                return Html::a("<span class='badge' style='background-color: #4CAF50' ><i class='fa fa-check-square-o'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate,'id'=>$cid], [
                                             'class' => 'activity-add-link',
                                             'title' => 'ตรวจสอบสิทธิ์การรักษา',
                                             'data-toggle' => 'modal',

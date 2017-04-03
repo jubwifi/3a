@@ -25,7 +25,8 @@
         "kartik-v/yii2-widgets": "*",
         "kartik-v/yii2-editable": "@dev",
         "kartik-v/yii2-export": "*",
-        "yiisoft/yii2-jui": "^2.0"
+        "yiisoft/yii2-jui": "^2.0",
+        "2amigos/yii2-file-upload-widget": "~1.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

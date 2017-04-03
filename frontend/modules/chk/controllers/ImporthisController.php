@@ -108,8 +108,56 @@ class ImporthisController extends \yii\web\Controller {
         
         $vn = $_GET['vn'];
         $vstdate = $_GET['vstdate'];
+        $cid = $_GET['id'];
         
-         return $this->renderAjax('modalpop',['vn'=>$vn,'vstdate'=>$vstdate]);
+        $sqlt = "SELECT 'ชื่อ'  as tt,tname  AS t2
+                FROM  chk_ovst_log
+                WHERE md5(cid)='$cid'
+                UNION 
+                SELECT 'จังหวัดที่ลงทะเบียนรักษา' as tt,prov  AS t2
+                FROM chk_dbpop d
+                WHERE md5(pid) ='$cid'
+                UNION 
+                SELECT 'สิทธิการรักษาพยาบาล' as tt,CONCAT(tname ,'(',d.MainInScl,')') AS t2
+                FROM chk_dbpop d
+                LEFT JOIN aaa_maininscl m ON m.maininscl = d.MainInScl
+                WHERE md5(pid) ='$cid'
+                UNION 
+                SELECT 'ประเภทสิทธิย่อย' as tt,CONCAT(pttype_name ,'(',n.nhso_code,')') AS t2
+                FROM chk_dbpop d
+                LEFT JOIN chk_nhso_inscl n ON n.nhso_code = d.SubInScl
+                WHERE md5(pid) ='$cid'
+                UNION 
+                SELECT 'สถานพยาบาลรับส่งต่อ' as tt,hmain  AS t2
+                FROM chk_dbpop d
+                WHERE md5(pid) ='$cid'
+                UNION 
+                SELECT 'สถานพยาบาลรอง' as tt,hsub  AS t2
+                FROM chk_dbpop d
+                WHERE md5(pid) ='$cid'
+                UNION 
+                SELECT 'วันที่เริ่มใช้สิทธิ' as tt,DATE_FORMAT(startdate,'%d/%m/%Y')  AS t2
+                FROM chk_dbpop d
+                WHERE md5(pid) ='$cid'
+                UNION
+                SELECT 'ที่อยู่'  as tt,''  AS t2
+                FROM  chk_ovst_log
+                WHERE md5(cid)='$cid'";
+
+        try {
+            $rawData = \Yii::$app->db->createCommand($sqlt)->queryAll();
+        } catch (\yii\db\Exception $e) {
+            throw new \yii\web\ConflictHttpException('sql error');
+        }
+        $dataProvider = new \yii\data\ArrayDataProvider([
+            //'key' => 'hoscode',
+            'allModels' => $rawData,
+            'pagination' => [
+                'pageSize' => 50
+            ],
+        ]);
+        
+         return $this->renderAjax('modalpop',['vn'=>$vn,'vstdate'=>$vstdate,'dataProvider' => $dataProvider]);
     }
         
 
