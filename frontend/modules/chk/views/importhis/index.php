@@ -21,7 +21,7 @@ $model = '';
                 <div class="container">
                     <div class="row">
                         <?= Html::beginForm(); ?>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label>เลือกวันที่ : </label>
                             <div class="form-group" >
 
@@ -37,18 +37,18 @@ $model = '';
                                     //'dateFormat' => 'yy-mm-dd'
                                     ],
                                 ]);
-                                echo ' ถึง ';
-                                echo yii\jui\DatePicker::widget([
-                                    'name' => 'date2',
-                                    'value' => $date2,
-                                    'language' => 'th',
-                                    'dateFormat' => 'yyyy-MM-dd',
-                                    'clientOptions' => [
-                                        'changeMonth' => true,
-                                        'changeYear' => true,
-                                    //'dateFormat' => 'yy-mm-dd'
-                                    ],
-                                ]);
+                                /* echo ' ถึง ';
+                                  echo yii\jui\DatePicker::widget([
+                                  'name' => 'date2',
+                                  'value' => $date2,
+                                  'language' => 'th',
+                                  'dateFormat' => 'yyyy-MM-dd',
+                                  'clientOptions' => [
+                                  'changeMonth' => true,
+                                  'changeYear' => true,
+                                  //'dateFormat' => 'yy-mm-dd'
+                                  ],
+                                  ]); */
                                 ?>
 
                             </div>
@@ -94,6 +94,14 @@ $model = '';
 <div class="row">
     <div class="col-md-12">
         <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title"> <i class='fa fa-wheelchair'></i> &nbsp;ผู้ป่วยที่มารับบริการในวันที่ <?= $date1 ?></h3>
+
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
             <div class="box-body">
                 <?php
                 $gridColumns = [
@@ -129,6 +137,41 @@ $model = '';
                         [
                         'attribute' => 'yname',
                         'label' => 'สิทธิติดตัว'
+                    ],
+                        ['attribute' => 'tck_pttype',
+                        'label' => 'เช็คสิทธิ์',
+                        //'options' => [ 'style' => 1==1 ? 'background-color:#FF0000':'background-color:#0000FF'],
+                        'value' => function ($model, $key, $index, $widget) {
+                            if ($model['tck_pttype'] == 'N') {
+                                $vn=$model['vn'];
+                                $vstdate=$model['vstdate'];
+                                return Html::a("<span class='badge' style='background-color: #F44336' ><i class='fa fa-times-circle'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate], [
+                                            'class' => 'activity-add-link',
+                                            'title' => 'ตรวจสอบสิทธิ์การรักษา',
+                                            'data-toggle' => 'modal',
+                                            'data-target' => '#modalvote',
+                                                //'data-whatever'=>$model['an'],
+                                                //'data-id' => $model['an'],
+                                ]);
+                            } else {
+                                $vn=$model['vn'];
+                                $vstdate=$model['vstdate'];
+                                return Html::a("<span class='badge' style='background-color: #4CAF50' ><i class='fa fa-check-square-o'></i></span>", ['/chk/importhis/modalpop', 'vn' => $vn,'vstdate'=>$vstdate], [
+                                            'class' => 'activity-add-link',
+                                            'title' => 'ตรวจสอบสิทธิ์การรักษา',
+                                            'data-toggle' => 'modal',
+                                            'data-target' => '#modalvote',
+                                                //'data-whatever'=>$model['an'],
+                                                //'data-id' => $model['an'],
+                                ]);
+                                
+                            }
+                        },
+                        'filterType' => GridView::FILTER_COLOR,
+                        'hAlign' => 'middle',
+                        'format' => 'raw',
+                    //'width' => '150px',
+                    //'noWrap' => true
                     ],
                         [
                         'attribute' => 'hospmain',

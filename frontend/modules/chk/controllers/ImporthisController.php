@@ -8,27 +8,25 @@ class ImporthisController extends \yii\web\Controller {
 
     public function actionIndex() {
         $date1 = date('Y-m-d');
-        $date2 = date('Y-m-d');
 
+        
+        if (isset($_GET['vstdate'])) {
+            $date1 = $_GET['vstdate'];
+        }
         if (isset($_GET['page'])) {
             $date1 = Yii::$app->session['date1'];
-            $date2 = Yii::$app->session['date2'];
         }
         if (Yii::$app->request->isPost) {
             if (isset($_POST['date1']) == '') {
                 $date1 = Yii::$app->session['date1'];
-                $date2 = Yii::$app->session['date2'];
             } else {
 
                 $date1 = $_POST['date1'];
-                $date2 = $_POST['date2'];
                 Yii::$app->session['date1'] = $date1;
-                Yii::$app->session['date2'] = $date2;
             }
         }
         if (isset($_GET['date1'])) {
             $date1 = Yii::$app->session['date1'];
-            $date2 = Yii::$app->session['date2'];
         }
 
 
@@ -38,16 +36,17 @@ class ImporthisController extends \yii\web\Controller {
 
         if (Yii::$app->request->isPost) {
 
-            $sql = "SELECT o.hn,p.cid,CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
+            $sql = "SELECT o.vstdate,o.vn,o.hn,p.cid,CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
 			 v.pdx,CONCAT(o.pttype,' ',y.name) AS yname,o.hospmain,o.hospsub,
-			 s.name AS sname,k.department,main_dep
+			 s.name AS sname,k.department,main_dep,y.hipdata_code,y.hipdata_code,
+                         o.pttype
                 FROM ovst  o
                 LEFT JOIN patient p ON p.hn =o.hn
                 LEFT JOIN pttype y ON y.pttype = o.pttype
                 LEFT JOIN vn_stat v ON v.vn = o.vn
                 LEFT JOIN spclty s ON s.spclty = o.spclty
                 LEFT JOIN kskdepartment k ON k.depcode = o.main_dep
-                WHERE o.vstdate BETWEEN '$date1' and '$date2'
+                WHERE o.vstdate = '$date1'
                                         AND o.an IS NULL 
                 ORDER BY o.hn  ";
 
@@ -57,7 +56,9 @@ class ImporthisController extends \yii\web\Controller {
             $data = $connection->createCommand($sql)
                     ->queryAll();
             for ($i = 0; $i < sizeof($data); $i++) {
+                $vstdate = $data[$i]['vstdate'];
                 $hn = $data[$i]['hn'];
+                $vn = $data[$i]['vn'];
                 $cid = $data[$i]['cid'];
                 $tname = $data[$i]['tname'];
                 $pdx = $data[$i]['pdx'];
@@ -67,19 +68,23 @@ class ImporthisController extends \yii\web\Controller {
                 $sname = $data[$i]['sname'];
                 $department = $data[$i]['department'];
                 $main_dep = $data[$i]['main_dep'];
+                $hipdata_code = $data[$i]['hipdata_code'];
+                $pttype = $data[$i]['pttype'];
 
-                $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ovst_log (hn,cid,tname,pdx,yname,hospmain,hospsub,sname,department,main_dep) 
+                $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ovst_log (vstdate,vn,hn,cid,tname,pdx,nhso_pttype,yname,hospmain,hospsub,sname,department,main_dep,pttype) 
 							VALUES 
-                                                    ('$hn','$cid','$tname','$pdx','$yname','$hospmain','$hospsub','$sname','$department','$main_dep')")->execute();
+                                                    ('$vstdate','$vn','$hn','$cid','$tname','$pdx','$hipdata_code','$yname','$hospmain','$hospsub','$sname','$department','$main_dep','$pttype')")->execute();
             }
         }else{
             
         }
 
 
-        $sqlt = "SELECT * 
+        $sqlt = "SELECT c.*,d.maininscl,
+                IF(nhso_pttype = maininscl,'Y','N') AS tck_pttype
                 FROM chk_ovst_log c
-                LEFT JOIN chk_dbpop d ON d.pid = c.cid";
+                LEFT JOIN chk_dbpop d ON d.pid = c.cid
+                WHERE vstdate = '$date1' ";
 
         try {
             $rawData = \Yii::$app->db->createCommand($sqlt)->queryAll();
@@ -95,7 +100,17 @@ class ImporthisController extends \yii\web\Controller {
         ]);
 
 
-        return $this->render('index', ['dataProvider' => $dataProvider, 'date1' => $date1, 'date2' => $date2]);
+        return $this->render('index', ['dataProvider' => $dataProvider, 'date1' => $date1]);
     }
+    
+    
+    public function actionModalpop() {
+        
+        $vn = $_GET['vn'];
+        $vstdate = $_GET['vstdate'];
+        
+         return $this->renderAjax('modalpop',['vn'=>$vn,'vstdate'=>$vstdate]);
+    }
+        
 
 }

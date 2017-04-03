@@ -9,7 +9,7 @@
         <!-- Sidebar user panel -->
         <div class="user-panel">
             <div class="pull-left image">
-                <img src="<?= $directoryAsset ?>/img/moph.jpg" class="img-circle" alt="User Image"/>
+                <img src="../../assets/images/moph.jpg" class="img-circle" alt="User Image"/>
             </div>
             <div class="pull-left info">
                 <?php if (Yii::$app->user->isGuest) { ?>
