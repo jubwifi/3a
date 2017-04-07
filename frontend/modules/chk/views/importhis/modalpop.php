@@ -29,55 +29,103 @@ use kartik\export\ExportMenu;
 
 
 <div class="panel panel-default">
-  <div class="panel-body">
-    <?php
-        $gridColumns = [
-                [
-                'attribute' => 'tt',
-                'label' => 'รายการ'
-            ], [
-                'attribute' => 't2',
-                'label' => 'ข้อมูล'
-            ]
-        ];
+    <div class="panel-body">
+        <?php
+        $connection = Yii::$app->db;
 
-        echo '<div class="col-md-12" align="right" >';
-        echo ExportMenu::widget([
-            'dataProvider' => $dataProvider,
-            'columns' => $gridColumns
-        ]);
-        echo '</div>';
-        echo GridView::widget([
-            'dataProvider' => $dataProvider,
-            //'filterModel' => $searchModel,
-            'rowOptions' => function($model) {
-                
-            },
-            'autoXlFormat' => true,
-            'export' => [
-                'fontAwesome' => true,
-                'showConfirmAlert' => false,
-                'target' => GridView::TARGET_BLANK
-            ],
-            'columns' => $gridColumns,
-            'resizableColumns' => true,
-            'resizeStorageKey' => Yii::$app->user->id . '-' . date("m"),
-            //'floatHeader' => true,
-            //'floatHeaderOptions' => ['scrollingTop' => '100'],
-            'pjax' => true,
-            'pjaxSettings' => [
-                'neverTimeout' => true,
-            //'beforeGrid' => 'My fancy content before.',
-            //'afterGrid' => 'My fancy content after.',
-            ],
-        ]);
+        $tname = "";
+        $prov ="";
+        $MainInScl = "";
+        $nhso_code = "";
+        $hmain = "";
+        $hsub = "";
+        $t2 = "";
+        $sqlt = "SELECT CONCAT(fname,' ',lname) AS tname1,prov,CONCAT(m.tname ,'(',d.MainInScl,')') AS MainInScl ,
+				CONCAT(pttype_name ,'(',n.nhso_code,')') AS nhso_code,hmain,hsub,
+				DATE_FORMAT(startdate,'%d/%m/%Y')  AS t2,o.tname
+                FROM chk_dbpop  d
+                LEFT JOIN aaa_maininscl m ON m.maininscl = d.MainInScl
+                LEFT JOIN chk_nhso_inscl n ON n.nhso_code = d.SubInScl
+                LEFT JOIN chk_ovst_log o ON o.cid = d.pid
+                WHERE md5(pid)='$id'";
+
+        $data = $connection->createCommand($sqlt)
+                ->queryAll();
+        for ($i = 0; $i < sizeof($data); $i++) {
+            $tname = $data[$i]['tname'];
+            $prov = $data[$i]['prov'];
+            $MainInScl = $data[$i]['MainInScl'];
+            $nhso_code = $data[$i]['nhso_code'];
+            $hmain = $data[$i]['hmain'];
+            $hsub = $data[$i]['hsub'];
+            $t2 = $data[$i]['t2'];
+        }
         ?>
-  </div>
-  <div class="panel-footer">
-      <button type="button" class='btn btn-danger' id="btnedit">ปรับสิททธิ์</button>
-      <button type="button" id="close2" class="btn btn-danger  pull-right" data-dismiss="modal">Close</button>
-  
-  </div>
+
+
+        <table class="table">
+            <thead class="thead-inverse">
+                <tr bgcolor="ccccb3">
+                    <th>#</th>
+                    <th width="25%"  align="center">รายการ</th>
+                    <th>ข้อมูล</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row"></th>
+                    <td>ชื่อ-สกุล</td>
+                    <td><?= $tname ?></td>
+                </tr>
+                <tr>
+                    <th scope="row"></th>
+                    <td>จังหวัดที่ลงทะเบียนรักษา</td>
+                    <td><?= $prov ?></td>
+                </tr>
+
+                <tr>
+                    <th scope="row"></th>
+                    <td>สิทธิการรักษาพยาบาล</td>
+                    <td><?= $MainInScl ?></td>
+                </tr>
+                <tr>
+                    <th scope="row"></th>
+                    <td>ประเภทสิทธิย่อย</td>
+                    <td><?= $nhso_code ?></td>
+                </tr>
+                <tr>
+                    <th scope="row"></th>
+                    <td>รหัสบัตรประกันสุขภาพ</td>
+                    <td><?= $tname ?></td>
+                </tr>
+
+                <tr>
+                    <th scope="row"></th>
+                    <td>หน่วยบริการประจำ</td>
+                    <td><?= $hmain ?></td>
+                </tr>
+                <tr>
+                    <th scope="row"></th>
+                    <td>สถานยยาบาลรอง</td>
+                    <td><?= $hsub ?></td>
+                </tr>
+                <tr>
+                    <th scope="row"></th>
+                    <td>วันที่เริ่มใช้สิทธิ</td>
+                    <td><?= $t2 ?></td>
+                </tr>
+
+
+            </tbody>
+        </table>
+
+
+    </div>
+    <div class="panel-footer">
+        <button type="button" class='btn btn-danger' id="btnedit">ปรับสิททธิ์</button>
+        <button type="button" id="close2" class="btn btn-danger  pull-right" data-dismiss="modal">Close</button>
+
+    </div>
 </div>
 
 

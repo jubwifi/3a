@@ -8,8 +8,9 @@ class ImporthisController extends \yii\web\Controller {
 
     public function actionIndex() {
         $date1 = date('Y-m-d');
-
-        
+        $connection = Yii::$app->db2;
+        $connectiond = Yii::$app->db;
+        $type = '1';
         if (isset($_GET['vstdate'])) {
             $date1 = $_GET['vstdate'];
         }
@@ -23,6 +24,7 @@ class ImporthisController extends \yii\web\Controller {
 
                 $date1 = $_POST['date1'];
                 Yii::$app->session['date1'] = $date1;
+                $aa = 'test';
             }
         }
         if (isset($_GET['date1'])) {
@@ -34,9 +36,13 @@ class ImporthisController extends \yii\web\Controller {
 
 
 
-        if (Yii::$app->request->isPost) {
+        if (isset($_POST['date1'])) {
 
-            $sql = "SELECT o.vstdate,o.vn,o.hn,p.cid,CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
+            $datals = $connectiond->createCommand("DELETE FROM chk_ovst_log WHERE vstdate ='$date1'")->execute();
+            $type = $_POST['type'];
+            if ($_POST['type'] == '1') {
+
+                $sql = "SELECT o.vstdate,o.vn,o.hn,p.cid,CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
 			 v.pdx,CONCAT(o.pttype,' ',y.name) AS yname,o.hospmain,o.hospsub,
 			 s.name AS sname,k.department,main_dep,y.hipdata_code,y.hipdata_code,
                          o.pttype
@@ -51,31 +57,33 @@ class ImporthisController extends \yii\web\Controller {
                 ORDER BY o.hn  ";
 
 
-            $connection = Yii::$app->db2;
-            $connectiond = Yii::$app->db;
-            $data = $connection->createCommand($sql)
-                    ->queryAll();
-            for ($i = 0; $i < sizeof($data); $i++) {
-                $vstdate = $data[$i]['vstdate'];
-                $hn = $data[$i]['hn'];
-                $vn = $data[$i]['vn'];
-                $cid = $data[$i]['cid'];
-                $tname = $data[$i]['tname'];
-                $pdx = $data[$i]['pdx'];
-                $yname = $data[$i]['yname'];
-                $hospmain = $data[$i]['hospmain'];
-                $hospsub = $data[$i]['hospsub'];
-                $sname = $data[$i]['sname'];
-                $department = $data[$i]['department'];
-                $main_dep = $data[$i]['main_dep'];
-                $hipdata_code = $data[$i]['hipdata_code'];
-                $pttype = $data[$i]['pttype'];
 
-                $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ovst_log (vstdate,vn,hn,cid,tname,pdx,nhso_pttype,yname,hospmain,hospsub,sname,department,main_dep,pttype) 
+                $data = $connection->createCommand($sql)
+                        ->queryAll();
+                for ($i = 0; $i < sizeof($data); $i++) {
+                    $vstdate = $data[$i]['vstdate'];
+                    $hn = $data[$i]['hn'];
+                    $vn = $data[$i]['vn'];
+                    $cid = $data[$i]['cid'];
+                    $tname = $data[$i]['tname'];
+                    $pdx = $data[$i]['pdx'];
+                    $yname = $data[$i]['yname'];
+                    $hospmain = $data[$i]['hospmain'];
+                    $hospsub = $data[$i]['hospsub'];
+                    $sname = $data[$i]['sname'];
+                    $department = $data[$i]['department'];
+                    $main_dep = $data[$i]['main_dep'];
+                    $hipdata_code = $data[$i]['hipdata_code'];
+                    $pttype = $data[$i]['pttype'];
+
+                    $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ovst_log (vstdate,vn,hn,cid,tname,pdx,nhso_pttype,yname,hospmain,hospsub,sname,department,main_dep,pttype) 
 							VALUES 
                                                     ('$vstdate','$vn','$hn','$cid','$tname','$pdx','$hipdata_code','$yname','$hospmain','$hospsub','$sname','$department','$main_dep','$pttype')")->execute();
+                }
+            } elseif ($_POST['type'] == '2') {
+                
             }
-        }else{
+        } else {
             
         }
 
@@ -100,65 +108,20 @@ class ImporthisController extends \yii\web\Controller {
         ]);
 
 
-        return $this->render('index', ['dataProvider' => $dataProvider, 'date1' => $date1]);
+        return $this->render('index', ['dataProvider' => $dataProvider, 'date1' => $date1, 'type' => $type]);
     }
-    
-    
+
     public function actionModalpop() {
-        
+
         $vn = $_GET['vn'];
         $vstdate = $_GET['vstdate'];
         $cid = $_GET['id'];
-        
-        $sqlt = "SELECT 'ชื่อ'  as tt,tname  AS t2
-                FROM  chk_ovst_log
-                WHERE md5(cid)='$cid'
-                UNION 
-                SELECT 'จังหวัดที่ลงทะเบียนรักษา' as tt,prov  AS t2
-                FROM chk_dbpop d
-                WHERE md5(pid) ='$cid'
-                UNION 
-                SELECT 'สิทธิการรักษาพยาบาล' as tt,CONCAT(tname ,'(',d.MainInScl,')') AS t2
-                FROM chk_dbpop d
-                LEFT JOIN aaa_maininscl m ON m.maininscl = d.MainInScl
-                WHERE md5(pid) ='$cid'
-                UNION 
-                SELECT 'ประเภทสิทธิย่อย' as tt,CONCAT(pttype_name ,'(',n.nhso_code,')') AS t2
-                FROM chk_dbpop d
-                LEFT JOIN chk_nhso_inscl n ON n.nhso_code = d.SubInScl
-                WHERE md5(pid) ='$cid'
-                UNION 
-                SELECT 'สถานพยาบาลรับส่งต่อ' as tt,hmain  AS t2
-                FROM chk_dbpop d
-                WHERE md5(pid) ='$cid'
-                UNION 
-                SELECT 'สถานพยาบาลรอง' as tt,hsub  AS t2
-                FROM chk_dbpop d
-                WHERE md5(pid) ='$cid'
-                UNION 
-                SELECT 'วันที่เริ่มใช้สิทธิ' as tt,DATE_FORMAT(startdate,'%d/%m/%Y')  AS t2
-                FROM chk_dbpop d
-                WHERE md5(pid) ='$cid'
-                UNION
-                SELECT 'ที่อยู่'  as tt,''  AS t2
-                FROM  chk_ovst_log
-                WHERE md5(cid)='$cid'";
 
-        try {
-            $rawData = \Yii::$app->db->createCommand($sqlt)->queryAll();
-        } catch (\yii\db\Exception $e) {
-            throw new \yii\web\ConflictHttpException('sql error');
-        }
-        $dataProvider = new \yii\data\ArrayDataProvider([
-            //'key' => 'hoscode',
-            'allModels' => $rawData,
-            'pagination' => [
-                'pageSize' => 50
-            ],
-        ]);
+       
+
         
-         return $this->renderAjax('modalpop',['vn'=>$vn,'vstdate'=>$vstdate,'dataProvider' => $dataProvider]);
+
+        return $this->renderAjax('modalpop', ['vn' => $vn, 'vstdate' => $vstdate,'id'=>$cid]);
     }
-        
 
 }
