@@ -10,7 +10,7 @@ use yii\bootstrap\Dropdown;
 use kartik\select2\Select2;
 $model = '';
 $this->title = 'AAA | ';
-echo $type;
+
 ?>
 <h2><i class="fa  fa-cloud-download"></i> นำเข้าข้อมูลจากระบบ HIS  </h2>
 
