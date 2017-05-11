@@ -12,6 +12,10 @@ class ImporthisController extends \yii\web\Controller {
         $connectiond = Yii::$app->db;
         $type=0;
         
+        if(isset($_GET['type'])=='1'){
+            $type=1;
+        }
+        
         
         if (Yii::$app->request->isPost) {
             $type =$_POST['type'];
@@ -120,7 +124,7 @@ class ImporthisController extends \yii\web\Controller {
 
                     //IPD
                     $sql = "SELECT i.dchdate,i.regdate,i.hn,i.an,p.cid,
-                                CONCAT(p.pname,p.fname,'',p.lname) AS tname,
+                                CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
                                 a.pdx,i.pttype,y.name AS yname,p.pttype,
                                 o.hospmain,o.hospsub,i.rw,y.hipdata_code,
 
@@ -187,6 +191,12 @@ class ImporthisController extends \yii\web\Controller {
                 
             }
         }
+        
+        $datalp = $connectiond->createCommand("UPDATE chk_ovst_log l
+                                                LEFT JOIN chk_pttype p ON p.pttype = l.pttype
+                                                SET l.nhso_code = p.nhso_code
+                                                WHERE vstdate ='$date1' ")->execute();
+        
 
 
 
@@ -194,13 +204,13 @@ class ImporthisController extends \yii\web\Controller {
          if ($type == '0') {
       
             $sqlt = "SELECT c.*,d.maininscl,
-                IF(nhso_pttype = maininscl,'Y','N') AS tck_pttype
+                IF(nhso_pttype = maininscl,'Y','N') AS tck_pttype,'opd' AS type
                 FROM chk_ovst_log c
                 LEFT JOIN chk_dbpop d ON d.pid = c.cid
                 WHERE vstdate = '$date1' ";
          }else{
              $sqlt = "SELECT c.*,d.maininscl,c.an as vn,dchdate as vstdate,
-                IF(hipdata_code = maininscl,'Y','N') AS tck_pttype
+                IF(hipdata_code = maininscl,'Y','N') AS tck_pttype,'ipd' AS type
                 FROM chk_ipt_log c
                 LEFT JOIN chk_dbpop d ON d.pid = c.cid
                 WHERE dchdate = '$date1' ";
@@ -239,15 +249,51 @@ class ImporthisController extends \yii\web\Controller {
 
         return $this->renderAjax('modalpop', ['vn' => $vn, 'vstdate' => $vstdate, 'id' => $cid]);
     }
+    
+     public function actionModalpopipd() {
+
+        $vn = $_GET['vn'];
+        $vstdate = $_GET['vstdate'];
+        $cid = $_GET['id'];
+
+
+
+
+
+        return $this->renderAjax('modalpopipd', ['vn' => $vn, 'vstdate' => $vstdate, 'id' => $cid]);
+    }
 
     public function actionBtnconfirm() {
         $date1 = $_GET['date1'];
         $connection = Yii::$app->db;
 
         $sql = "INSERT IGNORE INTO chk_ovst_confirm
-                SELECT * FROM chk_ovst_log
-                WHERE vstdate ='$date1'  ";
+                SELECT l.*,null,l.nhso_code 
+                FROM chk_ovst_log l
+                WHERE l.vstdate ='$date1'  ";
         $dataconfirm = $connection->createCommand($sql)->execute();
+        
+        
+        $sqlu ="UPDATE chk_ovst_confirm c
+                LEFT JOIN  
+                (SELECT IF(paid_money>0,'1',
+			 IF(nhso_pttype IN('WEL','UCS','SSS') AND h.chwpart = (SELECT prov FROM aaa_setting) AND uc_money>0,'2',
+			 IF(nhso_pttype IN('SSS','SSI')  AND uc_money>0,'3',
+			 IF(nhso_pttype IN('WEL','UCS')  AND uc_money>0,'4',
+			 IF(nhso_pttype ='NRH' AND uc_money>0,'5',
+			 IF(nhso_pttype IN('WEL','UCS') AND h.chwpart = (SELECT prov FROM aaa_setting)   AND uc_money>0 ,'6',
+			 IF(p.pp ='1' AND h.chwpart = (SELECT prov FROM aaa_setting)  AND uc_money>0,'7',
+			 IF(nhso_pttype IN('OFC','LGO')   AND uc_money>0,'8',
+                        IF(p.sso='1' AND uc_money>0,'9',
+                        IF(paid_money>0 AND uc_money>0,'10',
+                        IF(p.aid='1' AND uc_money>0,'11',
+                        IF(nhso_pttype IN('WEL','UCS') AND p.health='1' AND uc_money>0,'12','99'))))))))))))  AS claim,c.vn
+                 FROM chk_ovst_confirm c
+                 LEFT JOIN aaa_hospital h ON h.hospcode = c.hospmain
+                 LEFT JOIN chk_pttype p ON  p.nhso_code = c.nhso_pttype AND c.nhso_code IS NOT NULL
+                 WHERE vstdate ='$date1' ) AS t1 ON t1.vn = c.vn
+                 SET c.acc = t1.claim";
+        $datau = $connection->createCommand($sqlu)->execute();
 
         return $dataconfirm;
     }
@@ -259,11 +305,25 @@ class ImporthisController extends \yii\web\Controller {
 
         $sql = "UPDATE chk_ovst_log l
                 LEFT JOIN chk_dbpop d ON d.pid = l.cid
-                SET l.nhso_pttype = d.mainInScl,l.hospmain = d.hmain,l.hospsub = d.hsub2,l.pttype = d.subInScl
+                SET l.nhso_pttype = d.mainInScl,l.hospmain = d.hmain,l.hospsub = d.hsub2,l.nhso_code = d.subInScl
                 WHERE md5(cid) ='$cid' AND vstdate ='$date1' ";
         $datacpttype = $connection->createCommand($sql)->execute();
 
         return $datacpttype;
     }
+    public function actionCpttypeipd() {
+        $date1 = $_GET['date1'];
+        $cid = $_GET['cid'];
+        $connection = Yii::$app->db;
+
+        $sql = "UPDATE chk_ipt_log l
+                LEFT JOIN chk_dbpop d ON d.pid = l.cid
+                SET l.nhso_pttype = d.mainInScl,l.hospmain = d.hmain,l.hospsub = d.hsub2,l.nhso_code = d.subInScl
+                WHERE md5(cid) ='$cid' AND dchdate ='$date1' ";
+        $datacpttype = $connection->createCommand($sql)->execute();
+
+        return $datacpttype;
+    }
+    
 
 }

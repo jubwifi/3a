@@ -2,6 +2,7 @@
 
 use yii\bootstrap\Html;
 use kartik\grid\GridView;
+use app\modules\chk\models\ChkNhsoInscl;
 ?>
 
 <div class="row">

@@ -3,6 +3,8 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use kartik\select2\Select2;
+use app\modules\chk\models\ChkNhsoInscl;
+use yii\helpers\ArrayHelper;
 
 /* @var $this yii\web\View */
 /* @var $model app\modules\chk\models\CPttype */
@@ -157,8 +159,24 @@ use kartik\select2\Select2;
 
 
         <div class="row">
-            <div class="col-lg-2">
-                <?= $form->field($model, 'nhso_code')->textInput(['maxlength' => true]) ?>
+            <div class="col-lg-8">
+                 <?=
+                        $form->field($model, 'nhso_code')->widget(Select2::className(), [
+                            //'initValueText' => 'ssss',
+                            //'value' => '5000025',
+                            'data' =>
+                            ArrayHelper::map(ChkNhsoInscl::find()->all(), 'nhso_code', 'pttype_name'),
+                            'options' => [
+                                'placeholder' => '<--คลิก/พิมพ์เลือก-->',
+                            //'value' => '5000025',
+                            //'onchange' => 'alert (this.value)',
+                            ],
+                            'pluginOptions' =>
+                                [
+                                'allowClear' => true
+                            ],
+                        ]);
+                        ?> 
             </div> 
         </div>
 

@@ -85,6 +85,13 @@ class TestController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            
+            $connection = Yii::$app->db;
+            $datals = $connection->createCommand("UPDATE  chk_pttype  p
+                        LEFT JOIN chk_nhso_inscl n ON n.nhso_code = p.nhso_code
+                        SET  p.hipdata_code = n.hipdata_code
+                        WHERE p.pttype = '$id'")->execute();
+            
             return $this->redirect(['/chk/gpttype', 'id' => $model->pttype]);
         } else {
             return $this->renderAjax('update', [
