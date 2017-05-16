@@ -49,10 +49,11 @@ class ImporthisController extends \yii\web\Controller {
 
             if (isset($_POST['date1'])) {
 
-                $datals = $connectiond->createCommand("DELETE FROM chk_ovst_log WHERE vstdate ='$date1'")->execute();
+                
                 if ($type == '0') {
                     //OPD
-
+                    $datals = $connectiond->createCommand("DELETE FROM chk_ovst_log WHERE vstdate ='$date1'")->execute();
+                    $datals = $connectiond->createCommand("DELETE FROM chk_ovst_confirm WHERE vstdate ='$date1'")->execute();
                     $sql = "SELECT o.vstdate,o.vn,o.hn,p.cid,CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
                             v.pdx,CONCAT(o.pttype,' ',y.name) AS yname,o.hospmain,o.hospsub,
                             s.name AS sname,k.department,main_dep,y.hipdata_code,y.hipdata_code,o.pttype,
@@ -123,6 +124,8 @@ class ImporthisController extends \yii\web\Controller {
                 } elseif ($type == '1') {
 
                     //IPD
+                    $datals = $connectiond->createCommand("DELETE FROM chk_ipt_log WHERE dchdate ='$date1'")->execute();
+                    $datals = $connectiond->createCommand("DELETE FROM chk_ipt_confirm WHERE dchdate ='$date1'")->execute();
                     $sql = "SELECT i.dchdate,i.regdate,i.hn,i.an,p.cid,
                                 CONCAT(p.pname,p.fname,' ',p.lname) AS tname,
                                 a.pdx,i.pttype,y.name AS yname,p.pttype,
@@ -178,13 +181,13 @@ class ImporthisController extends \yii\web\Controller {
                         $inc15 = $data[$i]['inc15'];
                         $inc16 = $data[$i]['inc16'];
 
-                        $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ipt_log (dchdate,regdate,hn,an,cid,tname,pdx,pttype,hipdata_code,yname,pttype1,hospmain,hospsub,rw,income,paid_money,uc_money,rcpt_money,item_money,
+                        $datals = $connectiond->createCommand("INSERT IGNORE INTO  chk_ipt_log (dchdate,regdate,hn,an,cid,tname,pdx,pttype,hipdata_code,yname,nhso_pttype,hospmain,hospsub,rw,income,paid_money,uc_money,rcpt_money,item_money,
                                                             inc01,inc02,inc03,inc04,inc05,inc06,inc07,inc08,
-                                                            inc09,inc10,inc11,inc12,inc13,inc14,inc15,inc16 ) 
+                                                            inc09,inc10,inc11,inc12,inc13,inc14,inc15,inc16,nhso_code ) 
                                                             VALUES 
                                                     ('$dchdate','$regdate','$hn','$an','$cid','$tname','$pdx','$pttype','$hipdata_code','$yname','$pttype','$hospmain','$hospsub','$rw',
                                                      '$income','$paid_money','$uc_money','$rcpt_money','$item_money','$inc01','$inc02','$inc03','$inc04','$inc05','$inc06','$inc07','$inc08','$inc09',
-                                                     '$inc10','$inc11','$inc12','$inc13','$inc14','$inc15','$inc16')")->execute();
+                                                     '$inc10','$inc11','$inc12','$inc13','$inc14','$inc15','$inc16','$pttype')")->execute();
                     }
                 }
             } else {
@@ -196,6 +199,11 @@ class ImporthisController extends \yii\web\Controller {
                                                 LEFT JOIN chk_pttype p ON p.pttype = l.pttype
                                                 SET l.nhso_code = p.nhso_code
                                                 WHERE vstdate ='$date1' ")->execute();
+        
+         $datalpi = $connectiond->createCommand("UPDATE chk_ipt_log l
+                                                LEFT JOIN chk_pttype p ON p.pttype = l.pttype
+                                                SET l.nhso_code = p.nhso_code
+                                                WHERE dchdate ='$date1' ")->execute();
         
 
 
@@ -297,6 +305,41 @@ class ImporthisController extends \yii\web\Controller {
 
         return $dataconfirm;
     }
+    public function actionBtnconfirmipd() {
+        $date1 = $_GET['date1'];
+        $connection = Yii::$app->db;
+
+        $sql = "INSERT IGNORE INTO chk_ipt_confirm
+                SELECT l.*,null,l.nhso_pttype
+                FROM chk_ipt_log l
+                WHERE l.dchdate ='$date1'  ";
+        $dataconfirm = $connection->createCommand($sql)->execute();
+        
+        
+        $sqlu ="UPDATE chk_ipt_confirm c
+                LEFT JOIN  
+                (SELECT IF(paid_money>0,'1',
+			 IF(c.hipdata_code IN('WEL','UCS','SSS') AND h.chwpart = (SELECT prov FROM aaa_setting) AND uc_money>0,'2',
+			 IF(c.hipdata_code IN('SSS','SSI')  AND uc_money>0,'3',
+			 IF(c.hipdata_code IN('WEL','UCS')  AND uc_money>0,'4',
+			 IF(c.hipdata_code ='NRH' AND uc_money>0,'5',
+			 IF(c.hipdata_code IN('WEL','UCS') AND h.chwpart = (SELECT prov FROM aaa_setting)   AND uc_money>0 ,'6',
+			 IF(p.pp ='1' AND h.chwpart = (SELECT prov FROM aaa_setting)  AND uc_money>0,'7',
+			 IF(c.hipdata_code IN('OFC','LGO')   AND uc_money>0,'8',
+                        IF(p.sso='1' AND uc_money>0,'9',
+                        IF(paid_money>0 AND uc_money>0,'10',
+                        IF(p.aid='1' AND uc_money>0,'11',
+                        IF(c.hipdata_code IN('WEL','UCS') AND p.health='1' AND uc_money>0,'12','99'))))))))))))  AS claim,c.an
+                 FROM chk_ipt_confirm c
+                 LEFT JOIN aaa_hospital h ON h.hospcode = c.hospmain
+                 LEFT JOIN chk_pttype p ON  p.nhso_code = c.nhso_pttype AND c.nhso_code IS NOT NULL
+                 WHERE dchdate ='$date1' ) AS t1 ON t1.an = c.an
+                 SET c.acc = t1.claim";
+        $datau = $connection->createCommand($sqlu)->execute();
+
+        return $dataconfirm;
+    }
+    
 
     public function actionCpttype() {
         $date1 = $_GET['date1'];
@@ -318,7 +361,7 @@ class ImporthisController extends \yii\web\Controller {
 
         $sql = "UPDATE chk_ipt_log l
                 LEFT JOIN chk_dbpop d ON d.pid = l.cid
-                SET l.nhso_pttype = d.mainInScl,l.hospmain = d.hmain,l.hospsub = d.hsub2,l.nhso_code = d.subInScl
+                SET l.hipdata_code = d.mainInScl,l.hospmain = d.hmain,l.hospsub = d.hsub2,l.nhso_pttype = d.subInScl
                 WHERE md5(cid) ='$cid' AND dchdate ='$date1' ";
         $datacpttype = $connection->createCommand($sql)->execute();
 

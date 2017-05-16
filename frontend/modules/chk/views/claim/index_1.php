@@ -3,10 +3,14 @@
 
 use yii\bootstrap\Html;
 use kartik\grid\GridView;
-use kartik\select2\Select2;
-
+use kartik\tabs\TabsX;
 ?>
 <h1>แบ่งหมวดค่ารักษาพยาบาล เพื่อเรียกเก็บ</h1>
+
+
+
+
+
 
 <div class="row">
     <div class="col-md-12">
@@ -35,20 +39,6 @@ use kartik\select2\Select2;
 
                             </div>
                         </div>
-                        
-                        <div class="col-md-2">
-                                <div class="form-group">
-                                    <label>ประเภทผู้ป่วย : </label>
-                                    <?=
-                                    Select2::widget([
-                                        'name' => 'type',
-                                        'value' => $type,
-                                        'data' => ['OPD', 'IPD'],
-                                        'options' => ['multiple' => false, 'placeholder' => '<--คลิก/พิมพ์เลือก-->']
-                                    ]);
-                                    ?>
-                                </div>
-                            </div>
 
                         <div class="col-md-2">
                             <br>
@@ -60,6 +50,33 @@ use kartik\select2\Select2;
                         <?= Html::endForm(); ?>
 
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><i class="fa fa-th-large"></i>&nbsp;&nbsp; รายละเอียด</div>
+            <div class="panel-body">
+                <div class="col-md-4">
+                <?php
+                echo TabsX::widget([
+                    'position' => TabsX::POS_ABOVE,
+                    'align' => TabsX::ALIGN_LEFT,
+                    'items' => [
+                            [
+                            'label' => 'OPD',
+                            'content' => $this->render('left', [
+                               
+                            ]),
+                        ],
+                    ]
+                ]);
+                ?>
                 </div>
             </div>
         </div>
@@ -97,16 +114,9 @@ use kartik\select2\Select2;
                         'value' => function ($model, $key, $index, $widget) {
                             $acc = $model['claimgroup'];
                             $date1 = $model['vstdate'];
-                            $type = $model['type'];
                             if ($model['tcount'] > 0) {
-                                if($model['type']==0){
-                                   return Html::a("<span class='badge' style='background-color: #EC407A' >" . $model['tcount'] . "</span>", ['/chk/claim', 'date1' => $date1, 'acc' => $acc], [
-                                ]); 
-                                }else{
-                                     return Html::a("<span class='badge' style='background-color: #EC407A' >" . $model['tcount'] . "</span>", ['/chk/claim', 'date1' => $date1, 'acc' => $acc,'type'=>$type], [
-                                ]); 
-                                }
-                                
+                                return Html::a("<span class='badge' style='background-color: #EC407A' >" . $model['tcount'] . "</span>", ['/chk/claim', 'date1' => $date1, 'acc' => $acc], [
+                                ]);
                             } else {
                                 return "<span class='badge' style='background-color: #4CAF50' >" . $model['tcount'] . " </span>";
                             }
@@ -147,63 +157,63 @@ use kartik\select2\Select2;
     </div>
 
 
-<?php if($acc<>'0'){ ?>
+    <?php if ($acc <> '0') { ?>
 
-    <div class="col-md-9">
-        <?php
-        echo \kartik\grid\GridView::widget([
-            'dataProvider' => $dataProvider2,
-            'responsive' => TRUE,
-            'hover' => true,
-            'floatHeader' => true,
-            'panel' => [
-                'before' => '',
-                'type' => \kartik\grid\GridView::TYPE_PRIMARY,
-            ],
-            'columns' => [
-                    ['class' => 'kartik\grid\SerialColumn'],
-                    [
-                    'attribute' => 'vstdate',
-                    'label' => 'วันที่มารับ',
+        <div class="col-md-9">
+            <?php
+            echo \kartik\grid\GridView::widget([
+                'dataProvider' => $dataProvider2,
+                'responsive' => TRUE,
+                'hover' => true,
+                'floatHeader' => true,
+                'panel' => [
+                    'before' => '',
+                    'type' => \kartik\grid\GridView::TYPE_PRIMARY,
                 ],
-                    [
-                    'attribute' => 'hn',
-                    'label' => 'HN',
+                'columns' => [
+                        ['class' => 'kartik\grid\SerialColumn'],
+                        [
+                        'attribute' => 'vstdate',
+                        'label' => 'วันที่มารับ',
+                    ],
+                        [
+                        'attribute' => 'hn',
+                        'label' => 'HN',
+                    ],
+                        [
+                        'attribute' => 'tname',
+                        'label' => 'ชื่อ-สกุล',
+                    ],
+                        [
+                        'attribute' => 'hospmain',
+                        'label' => 'hospmain',
+                    ],
+                        [
+                        'attribute' => 'pdx',
+                        'label' => 'Pdx',
+                    ],
+                        [
+                        'attribute' => 'nhso_pttype',
+                        'label' => 'Hipdata',
+                    ],
+                        [
+                        'attribute' => 'paid_money',
+                        'label' => 'paid_money',
+                    ],
+                        [
+                        'attribute' => 'uc_money',
+                        'label' => 'uc_money',
+                    ],
                 ],
-                    [
-                    'attribute' => 'tname',
-                    'label' => 'ชื่อ-สกุล',
+                'toolbar' => [
+                    '{export}',
                 ],
-                    [
-                    'attribute' => 'hospmain',
-                    'label' => 'hospmain',
+                'export' => [
+                    'fontAwesome' => true
                 ],
-                    [
-                    'attribute' => 'pdx',
-                    'label' => 'Pdx',
-                ],
-                    [
-                    'attribute' => 'nhso_pttype',
-                    'label' => 'Hipdata',
-                ],
-                    [
-                    'attribute' => 'paid_money',
-                    'label' => 'paid_money',
-                ],
-                    [
-                    'attribute' => 'uc_money',
-                    'label' => 'uc_money',
-                ],
-            ],
-            'toolbar' => [
-                '{export}',
-            ],
-            'export' => [
-                'fontAwesome' => true
-            ],
-        ]);
-        ?>
-    </div>
-    
-<?php } ?>
+            ]);
+            ?>
+        </div>
+
+    <?php } ?>
 </div>

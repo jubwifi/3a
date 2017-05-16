@@ -47,8 +47,8 @@
                 <ul class="treeview-menu">
                     <li><a href="<?= Url::to('index.php?r=chk/importhis') ?>"><i class="fa fa-circle-o lg-gauge"></i><span class="pull-right-container">
                             </span>นำเข้าข้อมูล HIS</a></li>
-                    <li><a href="<?= Url::to('index.php?r=report') ?>"><i class="fa fa-circle-o"></i><span class="pull-right-container">
-                            </span>ตรวจสอบข้อมูล</a></li>
+                    <li><a href="<?= Url::to('index.php?r=chk/claim') ?>"><i class="fa fa-circle-o"></i><span class="pull-right-container">
+                            </span>หมวดค่ารักษาพยาบาล</a></li>
                 </ul>
             </li>
             

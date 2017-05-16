@@ -57,19 +57,19 @@ $this->title = 'AAA | ';
                         </div>
 
 
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label>ประเภทผู้ป่วย : </label>
-                                <?=
-                                Select2::widget([
-                                    'name' => 'type',
-                                    'value' => $type,
-                                    'data' => ['OPD', 'IPD'],
-                                    'options' => ['multiple' => false, 'placeholder' => '<--คลิก/พิมพ์เลือก-->']
-                                ]);
-                                ?>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>ประเภทผู้ป่วย : </label>
+                                    <?=
+                                    Select2::widget([
+                                        'name' => 'type',
+                                        'value' => $type,
+                                        'data' => ['OPD', 'IPD'],
+                                        'options' => ['multiple' => false, 'placeholder' => '<--คลิก/พิมพ์เลือก-->']
+                                    ]);
+                                    ?>
+                                </div>
                             </div>
-                        </div>
 
                         <div class="col-md-2">
                             <br>
@@ -444,8 +444,8 @@ $script = <<< JS
      //
 });
         
-        
-  $('#btnconfirm').click(function() {
+        if($type=='0'){
+             $('#btnconfirm').click(function() {
         
        
         $.ajax({
@@ -469,7 +469,37 @@ $script = <<< JS
       
      
         
- });       
+ });  
+        
+        }else{
+        
+             $('#btnconfirm').click(function() {
+        
+       
+        $.ajax({
+            type: 'POST', url: './index.php?r=chk/importhis/btnconfirmipd&date1='+'$date1', dataType: 'json',
+                data: {
+                    
+                    
+                }, success: function(se) {
+                    if(se>0){
+                       
+                      alert('บันทึกข้อมูลเรียบร้อยแล้ว');      
+        }else{
+        
+                    alert('confirm แล้ว'); 
+            }
+                 }
+        }); 
+        
+        
+      
+      
+     
+        
+ });  
+        }
+     
         
         
 JS;
